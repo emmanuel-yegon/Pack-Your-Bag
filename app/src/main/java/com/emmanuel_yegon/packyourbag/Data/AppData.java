@@ -2,6 +2,7 @@ package com.emmanuel_yegon.packyourbag.Data;
 
 import android.app.Application;
 import android.content.Context;
+import android.widget.Toast;
 
 import com.emmanuel_yegon.packyourbag.Constants.MyConstants;
 import com.emmanuel_yegon.packyourbag.Database.RoomDB;
@@ -15,6 +16,7 @@ public class AppData extends Application {
     RoomDB database;
     String category;
     Context context;
+    String addedBy;
 
     public static final String LAST_VERSION = "LAST_VERSION";
     public static final int NEW_VERSION = 1;
@@ -131,7 +133,7 @@ public class AppData extends Application {
         return dataList;
     }
 
-    public List<List<Items>> getAllData(){
+    public List<List<Items>> getAllData() {
         List<List<Items>> listOfAllItems = new ArrayList<>();
         listOfAllItems.clear();
         listOfAllItems.add(getBasicData());
@@ -148,14 +150,74 @@ public class AppData extends Application {
         return listOfAllItems;
     }
 
-    public void persistAllData(){
+    public void persistAllData() {
         List<List<Items>> listOfAllItems = getAllData();
-        for (List<Items> list: listOfAllItems){
-            for(Items items:list){
+        for (List<Items> list : listOfAllItems) {
+            for (Items items : list) {
                 database.mainDao().saveItem(items);
             }
         }
         System.out.println("Data added.");
+    }
+
+    public void persistDataByCategory(String category, Boolean onlyDelete) {
+        try {
+            List<Items> list = deleteAndGetListByCategory(category, onlyDelete);
+            if (!onlyDelete) {
+                for (Items item : list) {
+                    database.mainDao().saveItem(item);
+                }
+                Toast.makeText(context, category +"  Reset Successfully.", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(context, category +"  Reset Successfully.", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Toast.makeText(context, " Something Went Wrong", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private List<Items> deleteAndGetListByCategory(String category, Boolean onlyDelete) {
+        if (onlyDelete) {
+            database.mainDao().deleteAllByCategoryAndAddedBy(category, MyConstants.SYSTEM_SMALL);
+        } else {
+            database.mainDao().deleteAllByCategory(category);
+        }
+
+        switch (category) {
+            case MyConstants.BASIC_NEEDS_CAMEL_CASE:
+                return getBasicData();
+
+            case MyConstants.CLOTHING_CAMEL_CASE:
+                return getClothingData();
+
+            case MyConstants.PERSONAL_CARE_CAMEL_CASE:
+                return getPersonalCareData();
+
+            case MyConstants.BABY_NEEDS_CAMEL_CASE:
+                return getBabyNeedsData();
+
+            case MyConstants.HEALTH_CAMEL_CASE:
+                return getHealthData();
+
+            case MyConstants.TECHNOLOGY_CAMEL_CASE:
+                return getTechnologyData();
+
+            case MyConstants.FOOD_CAMEL_CASE:
+                return getFoodData();
+
+            case MyConstants.BEACH_SUPPLIES_CAMEL_CASE:
+                return getBeachSuppliesData();
+
+            case MyConstants.CAR_SUPPLIES_CAMEL_CASE:
+                return getCarSuppliesData();
+
+            case MyConstants.NEEDS_CAMEL_CASE:
+                return getNeedsData();
+
+            default:
+                return new ArrayList<>();
+        }
     }
 
 }
